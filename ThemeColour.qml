@@ -3,12 +3,9 @@ import Quickshell.Io
 import qs.Commons
 import "Aura.js" as Aura
 
-// Resolves the Omarchy theme to one keyboard colour. It only reports it --
-// deciding whether to use it, and writing it, belongs to the panel.
-//
-// Themes may ship a `keyboard.rgb` holding one hex colour. Nothing in Omarchy
-// 4 reads that file any more, so honouring it revives an existing convention.
-// Themes without it fall back to the accent colour.
+// Resolves the Omarchy theme to one keyboard colour; the panel decides
+// whether to use it. Themes may ship a `keyboard.rgb`, which nothing in
+// Omarchy 4 reads any more; those without it fall back to their accent.
 QtObject {
   id: root
 

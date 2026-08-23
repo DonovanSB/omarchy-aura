@@ -1,5 +1,4 @@
 import QtQuick
-import Quickshell
 import qs.Commons
 import qs.Ui
 import "Aura.js" as Aura
@@ -150,12 +149,10 @@ Panel {
     root.persistSettings({ musicMode: enabled })
   }
 
-  // The effect is persisted as the user chooses it, not snapshotted when
-  // music starts: a settings change rebuilds the widget, so there is no
-  // instant at which the pre-music state can be read reliably.
-  //
-  // Merges into the recorded effect rather than reading the device back,
-  // which would pick up frozen values for untouched fields.
+  // Persisted as the user chooses it, not snapshotted when music starts: a
+  // settings change rebuilds the widget, so there is no reliable instant to
+  // read the pre-music state. Merges into the record rather than reading the
+  // device, which is frozen while music runs.
   function applyEffect(overrides, extras) {
     var base = root.effectState
     var next = {
@@ -194,13 +191,10 @@ Panel {
     brightness: device.brightness
   })
 
-  // Brightness lives in the persisted effect too. On the device alone it was
-  // lost on every widget rebuild, and the guards below depend on it.
-  //
-  // Two forms on purpose. The property is for declarative bindings; imperative
-  // code must call the function, which recomputes from `configuredEffect`
-  // instead of reading a derived binding that a change handler can reach
-  // before it has been re-evaluated.
+  // Brightness is persisted too; on the device alone it was lost on every
+  // rebuild. Two forms on purpose: the property is for bindings, the function
+  // for imperative code, which must not read a derived binding that its own
+  // change handler can reach before re-evaluation.
   function brightnessNow() {
     var e = root.configuredEffect
     var b = e ? e.brightness : undefined

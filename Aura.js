@@ -8,10 +8,9 @@ var SERVICE = "xyz.ljones.Asusd"
 var IFACE = "xyz.ljones.Aura"
 var PROPS_IFACE = "org.freedesktop.DBus.Properties"
 
-// Firmware effect ids, in asusd's AuraModeNum order. A keyboard implements
-// only a subset, so the panel filters this by SupportedBasicModes. The flags
-// say which LedModeData fields each effect reads, so the panel can hide
-// controls that would do nothing.
+// Firmware effect ids in asusd's AuraModeNum order; the panel filters them by
+// SupportedBasicModes. The flags say which LedModeData fields each one reads,
+// so the panel can hide controls that would do nothing.
 var MODES = [
   { id: 0,  name: "Static",        colour1: true,  colour2: false, speed: false, direction: false },
   { id: 1,  name: "Breathe",       colour1: true,  colour2: true,  speed: true,  direction: false },
@@ -96,11 +95,9 @@ function mix(a, b, t) {
 
 // ---------------------------------------------------- music level pipeline
 //
-// Measured on real playback: `peak` updates at ~23 Hz and sits between ~0.40
-// and ~0.88 while music plays -- about 3 dB of usable range, riding high --
-// dropping to exactly 0 in gaps. So the absolute value is near useless and
-// everything hangs on normalising against an adaptive window, with silence
-// excluded from it.
+// Measured on real playback, `peak` sits between ~0.40 and ~0.88 while music
+// plays and drops to 0 in gaps. The absolute value is near useless, so the
+// level is normalised against an adaptive window with silence excluded.
 
 // Below this the signal counts as silence: output goes dark, window untouched.
 var SILENCE_GATE = 0.02
@@ -166,9 +163,7 @@ function colourDistance(a, b) {
                   Math.abs(a[2] - b[2]))
 }
 
-// ---------------------------------------------------------------- D-Bus argv
-//
-// Always an argv array, never a shell string, so a colour can never be
+// D-Bus argv. Always an array, never a shell string, so a colour can never be
 // reinterpreted as shell syntax.
 
 function treeCommand() {

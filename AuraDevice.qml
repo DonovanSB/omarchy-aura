@@ -2,13 +2,10 @@ import QtQuick
 import Quickshell.Io
 import "Aura.js" as Aura
 
-// Owns the conversation with asusd: discovers the Aura object path, mirrors
-// its properties into QML, and serialises writes.
-//
-// Everything goes through `busctl` because Quickshell 0.3 has no generic
-// D-Bus client. Cheaper than it looks -- a round-trip measures ~11 ms and the
-// device sustains ~83 writes/second. asusd's polkit policy lets the active
-// session write these, so no sudo or pkexec.
+// Owns the conversation with asusd. Everything goes through `busctl`, since
+// Quickshell 0.3 has no generic D-Bus client: a round-trip is ~11 ms and the
+// device sustains ~83 writes/second. No sudo needed -- asusd's polkit policy
+// covers the active session.
 Item {
   id: root
 
@@ -154,12 +151,9 @@ Item {
     _write(mode, colour1)
   }
 
-  // Fast path for software effects: Static plus a colour, with backpressure
-  // instead of a queue.
-  //
-  // Nothing is written at brightness 0. asusd restores the brightness on any
-  // LedModeData write while the LEDs are off (measured: one write takes 0
-  // back to 2), so 25 frames a second would undo "off" permanently.
+  // Static plus a colour, with backpressure instead of a queue. Nothing is
+  // written at brightness 0: asusd restores the brightness on any write while
+  // the LEDs are off, so 25 frames a second would undo "off" permanently.
   function pushColour(rgb) {
     if (_devicePath === "" || !rgb) return
     if (brightness <= 0) {
