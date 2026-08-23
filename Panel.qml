@@ -483,21 +483,6 @@ Panel {
           value: root.musicSmoothing
           onReleased: function(v) { root.persistSettings({ musicSmoothing: Math.round(v) }) }
         }
-
-        Rectangle {
-          width: parent.width
-          height: Style.space(4)
-          radius: height / 2
-          color: Style.selectedFillFor(Color.popups.text, Color.accent)
-
-          Rectangle {
-            width: parent.width * music.level
-            height: parent.height
-            radius: parent.radius
-            color: Color.accent
-            Behavior on width { NumberAnimation { duration: 60 } }
-          }
-        }
       }
 
       // ------------------------------------------------------------- status
