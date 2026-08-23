@@ -113,6 +113,10 @@ Panel {
     : ""
   readonly property bool deviceReady: device.ready
 
+  // Drives the bar icon: it shows its colours when the keyboard is lit and
+  // goes flat when it is not.
+  readonly property bool lightsOn: device.ready && brightnessNow() > 0
+
   // ---------------------------------------------------------- device layer
   AuraDevice { id: device }
 

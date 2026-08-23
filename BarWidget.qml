@@ -77,9 +77,21 @@ BarWidget {
     id: button
     anchors.fill: parent
     bar: root.bar
-    // nf-md-keyboard (U+F030C).
-    text: "\uDB80\uDF0C"
     slotSize: Style.bar.iconSlot
+    iconComponent: Component {
+      Item {
+        AuraIcon {
+          anchors.centerIn: parent
+          iconSize: Style.bar.iconCanvas
+          frameColor: root.bar ? root.bar.foreground : "#a3c863"
+          // Flat in the bar's own colour while the keyboard is off, full
+          // colours when it is lit.
+          tint: (panelLoader.item && panelLoader.item.lightsOn)
+            ? "transparent"
+            : (root.bar ? root.bar.foreground : "#a3c863")
+        }
+      }
+    }
     tooltipText: panelLoader.item ? panelLoader.item.label : ""
 
     onPressed: function(b) {
