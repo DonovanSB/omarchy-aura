@@ -1,10 +1,21 @@
-# Aura
+<p align="center">
+  <img src="assets/icon.svg" alt="" width="112" height="112">
+</p>
 
-ASUS Aura keyboard lighting for the Omarchy shell: the firmware effects your
-device supports, an Omarchy theme colour source, and an audio-reactive music
-mode.
+<h1 align="center">Aura</h1>
+
+<p align="center">
+  ASUS Aura keyboard lighting for the Omarchy shell.
+</p>
+
+The firmware effects your device supports, an Omarchy theme colour source, and
+an audio-reactive music mode.
 
 Adds a keyboard pill to the bar. Clicking it opens the control panel.
+
+<p align="center">
+  <img src="preview.png" alt="The Aura panel: brightness, mode, peak and quiet colours, and smoothing" width="380">
+</p>
 
 ## Requirements
 
