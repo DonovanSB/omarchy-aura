@@ -175,10 +175,14 @@ Panel {
 
   readonly property var configuredEffect: setting("effect", null)
 
-  // An unbound `settings` is an empty object. The bar always supplies `id`,
-  // so non-empty means the real entry has arrived.
-  readonly property bool settingsLoaded: root.settings
-    && Object.keys(root.settings).length > 0
+  // Whether the bar has handed over `settings` yet. Not a key count: the bar
+  // strips `id`, so a brand new entry legitimately arrives empty and counting
+  // would treat it as never loaded.
+  property bool settingsLoaded: false
+  onSettingsChanged: {
+    settingsLoaded = true
+    seedConfiguredEffect()
+  }
 
   // What the panel shows and acts on. Read this rather than the device, which
   // is frozen while music runs.
