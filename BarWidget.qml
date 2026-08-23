@@ -95,15 +95,23 @@ BarWidget {
     tooltipText: panelLoader.item ? panelLoader.item.label : ""
 
     onPressed: function(b) {
-      if (b === Qt.MiddleButton) root.cycleBrightness()
+      if (b === Qt.RightButton) root.toggleLights()
+      else if (b === Qt.MiddleButton) root.cycleBrightness()
       else root.togglePanel()
     }
   }
 
-  // Middle-click steps brightness without opening the panel.
+  // Middle-click steps brightness; right-click switches the lights off and
+  // back on, matching what right-click does on the other bar widgets.
   function cycleBrightness() {
     var panel = panelLoader.item
     if (!panel || !panel.deviceReady) return
     panel.stepBrightness()
+  }
+
+  function toggleLights() {
+    var panel = panelLoader.item
+    if (!panel || !panel.deviceReady) return
+    panel.toggleLights()
   }
 }

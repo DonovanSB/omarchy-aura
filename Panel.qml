@@ -99,6 +99,19 @@ Panel {
       root.bar.centerHoverRevealSuppressed = value
   }
 
+  // Level to come back to after a right-click switch-off. Persisted for the
+  // same reason brightness is: a widget rebuild would otherwise forget it.
+  readonly property int restoreBrightness: Number(setting("restoreBrightness", 2))
+
+  // Right-click on the pill is the device's main toggle, the way it is for
+  // audio, bluetooth and tailscale. Like mute, it restores the previous level
+  // rather than jumping to a fixed one.
+  function toggleLights() {
+    var current = root.brightnessNow()
+    if (current > 0) root.applyEffect({ brightness: 0 }, { restoreBrightness: current })
+    else root.applyEffect({ brightness: Math.max(1, root.restoreBrightness) })
+  }
+
   // Middle-click on the pill steps through the levels the device reports.
   function stepBrightness() {
     var levels = device.supportedBrightness
@@ -143,7 +156,7 @@ Panel {
   //
   // Merges into the recorded effect rather than reading the device back,
   // which would pick up frozen values for untouched fields.
-  function applyEffect(overrides) {
+  function applyEffect(overrides, extras) {
     var base = root.effectState
     var next = {
       mode: base.mode,
@@ -155,7 +168,10 @@ Panel {
     }
     for (var key in overrides) next[key] = overrides[key]
 
-    root.persistSettings({ effect: next })
+    var values = { effect: next }
+    for (var extra in (extras || {})) values[extra] = extras[extra]
+    root.persistSettings(values)
+
     device.setBrightness(next.brightness)
     if (next.brightness > 0) device.applyMode(next)
   }

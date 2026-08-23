@@ -49,7 +49,10 @@ To keep it installed but off the bar, use `omarchy plugin disable donovan.aura`.
 
 The panel also opens from `omarchy-shell shell toggle donovan.aura '{}'`, so it
 can be bound to a key in `~/.config/hypr/bindings.lua` or added to
-`omarchy-menu.jsonc`. Middle-clicking the pill steps brightness.
+`omarchy-menu.jsonc`.
+
+On the pill itself: right-click switches the lights off and back on at the
+level they were, and middle-click steps through the brightness levels.
 
 Only the effects your firmware actually implements are listed. A different
 ASUS board will show a different set.
