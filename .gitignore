@@ -1,0 +1,8 @@
+# Editor and OS cruft
+*~
+*.bak
+*.orig
+.DS_Store
+
+# Only present if tooling is ever added; the plugin itself has no deps
+node_modules/

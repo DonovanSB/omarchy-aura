@@ -1,0 +1,69 @@
+{
+  "schemaVersion": 1,
+  "id": "donovan.aura",
+  "name": "Aura",
+  "version": "1.0.0",
+  "author": "donovan",
+  "license": "MIT",
+  "description": "ASUS Aura keyboard lighting: firmware effects, theme sync, and an audio-reactive music mode.",
+  "kinds": [
+    "bar-widget"
+  ],
+  "entryPoints": {
+    "barWidget": "BarWidget.qml"
+  },
+  "barWidget": {
+    "displayName": "Aura",
+    "description": "Keyboard lighting control: brightness, firmware effects, colours, theme sync, and music mode.",
+    "category": "Hardware",
+    "aliases": [
+      "aura",
+      "keyboard-light",
+      "rgb"
+    ],
+    "allowMultiple": false,
+    "defaultSection": "right",
+    "defaults": {
+      "followTheme": false,
+      "musicMode": false,
+      "musicSmoothing": 3,
+      "musicFps": 25
+    },
+    "schema": [
+      {
+        "key": "followTheme",
+        "type": "boolean",
+        "label": "Follow theme colour",
+        "defaultValue": false,
+        "description": "Use the Omarchy theme's keyboard colour instead of a hand-picked one. It is a colour source, not a mode: it composes with every effect, music included. Picked in the panel via the theme chip in the colour row."
+      },
+      {
+        "key": "musicMode",
+        "type": "boolean",
+        "label": "Music mode",
+        "defaultValue": false,
+        "description": "Audio-reactive effect. Selected from the Mode list in the panel, alongside the firmware effects, since only one thing can animate the keyboard at a time."
+      },
+      {
+        "key": "musicSmoothing",
+        "type": "integer",
+        "label": "Music smoothing",
+        "min": 1,
+        "max": 10,
+        "step": 1,
+        "defaultValue": 3,
+        "description": "How slowly the lighting falls back after a peak (60 ms at 1, 600 ms at 10). This is the knob for flicker."
+      },
+      {
+        "key": "musicFps",
+        "type": "integer",
+        "label": "Music refresh rate (Hz)",
+        "min": 5,
+        "max": 40,
+        "step": 5,
+        "defaultValue": 25,
+        "description": "Keyboard updates per second while music mode runs. The device sustains ~83 Hz; 25 is smooth and cheap."
+      }
+    ]
+  }
+}
