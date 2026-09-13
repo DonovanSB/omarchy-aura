@@ -93,9 +93,13 @@ Panel {
     return false
   }
 
+  // Omarchy 4.0.3+ hands third-party widgets a PluginBarApi facade where the
+  // flag is read-only and changes go through a setter. Assigning it threw
+  // before controller.hide() ran, so the panel could never close.
   function setCenterHoverRevealSuppressed(value) {
-    if (root.bar && "centerHoverRevealSuppressed" in root.bar)
-      root.bar.centerHoverRevealSuppressed = value
+    if (!root.bar) return
+    if (typeof root.bar.setCenterHoverRevealSuppressed === "function")
+      root.bar.setCenterHoverRevealSuppressed(value)
   }
 
   // Level to come back to after a right-click switch-off. Persisted for the
