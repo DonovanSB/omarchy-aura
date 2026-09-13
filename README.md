@@ -23,8 +23,7 @@ Adds a keyboard pill to the bar. Clicking it opens the control panel.
 - `asusctl` installed and `asusd` running
 - An ASUS device exposing Aura over D-Bus
 
-No sudo needed — asusd's polkit policy lets the active session control the
-lighting. The plugin adds no system packages.
+The plugin adds no system packages.
 
 ## Install
 
