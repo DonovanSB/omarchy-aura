@@ -107,7 +107,9 @@ node tests/aura_test.js
 omarchy plugin validate .
 ```
 
-Saving any file under `~/.config/omarchy/plugins/` hot-reloads the plugin.
+Saving a file under `~/.config/omarchy/plugins/` triggers a hot reload, but the
+shell can keep serving the previous `Panel.qml` and `AuraDevice.qml`. Run
+`omarchy restart shell` to be sure the new code is running.
 
 ## License
 
