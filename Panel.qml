@@ -158,13 +158,14 @@ Panel {
   // read the pre-music state. Merges into the record rather than reading the
   // device, which is frozen while music runs.
   function applyEffect(overrides, extras) {
-    var next = root.effectWith(overrides)
-    var values = { effect: next }
+    var values = { effect: root.effectWith(overrides) }
     for (var extra in (extras || {})) values[extra] = extras[extra]
     root.persistSettings(values)
 
-    device.setBrightness(next.brightness)
-    if (next.brightness > 0) device.applyMode(next)
+    // The usual path, which knows about the theme colour and music mode. The
+    // bindings it reads have settled now, unlike inside the change handlers.
+    root.pushBrightness()
+    root.pushEffect()
   }
 
   function effectWith(overrides) {
