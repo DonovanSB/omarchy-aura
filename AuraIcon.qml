@@ -30,8 +30,8 @@ Item {
     preferredRendererType: Shape.CurveRenderer
     transform: Scale { xScale: root.u; yScale: root.u }
 
-    // Ring, open at the bottom. Heavier than the 1.65 the SVG uses: at
-    // bar size that lands on ~1.1px and smears across two rows.
+    // Ring, open at the bottom. Heavier than the 1.65 the SVG uses, so at
+    // bar size it lands on about one pixel, like the bar glyphs' strokes.
     ShapePath {
       fillColor: "transparent"
       strokeColor: root.frameColor

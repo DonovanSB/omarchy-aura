@@ -82,7 +82,10 @@ BarWidget {
       Item {
         AuraIcon {
           anchors.centerIn: parent
-          iconSize: Style.bar.iconCanvas
+          // Sized from the glyphs, not the whole canvas: the ring runs edge to
+          // edge of its box, where font glyphs leave room around them. One
+          // pixel more, since a thin ring reads lighter than a filled glyph.
+          iconSize: Style.bar.iconFont + 1
           frameColor: root.bar ? root.bar.foreground : "#a3c863"
           // Flat in the bar's own colour while the keyboard is off, full
           // colours when it is lit.
