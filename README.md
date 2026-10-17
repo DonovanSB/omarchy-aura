@@ -40,6 +40,16 @@ To place the pill somewhere specific:
 omarchy bar move donovan.aura --section right
 ```
 
+## Update
+
+```bash
+omarchy plugin update donovan.aura
+omarchy restart shell
+```
+
+The update rescans plugins but keeps the code the shell has already loaded, so
+the new version only runs after the restart.
+
 ## Remove
 
 ```bash
