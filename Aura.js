@@ -8,6 +8,9 @@ var SERVICE = "xyz.ljones.Asusd"
 var IFACE = "xyz.ljones.Aura"
 var PROPS_IFACE = "org.freedesktop.DBus.Properties"
 
+// The keyboard backlight's LED class device, as asus-wmi and hid-asus name it.
+var LED_PATH = "/sys/class/leds/asus::kbd_backlight"
+
 // Firmware effect ids in asusd's AuraModeNum order; the panel filters them by
 // SupportedBasicModes. The flags say which LedModeData fields each one reads,
 // so the panel can hide controls that would do nothing.
@@ -161,6 +164,25 @@ function colourDistance(a, b) {
   return Math.max(Math.abs(a[0] - b[0]),
                   Math.abs(a[1] - b[1]),
                   Math.abs(a[2] - b[2]))
+}
+
+// Whether two LedModeData states match. Every effect write restarts the
+// firmware animation, which shows as a blink, so a repeat is worth skipping.
+function sameEffect(a, b) {
+  if (!a || !b) return false
+  return (a.mode | 0) === (b.mode | 0)
+    && (a.zone | 0) === (b.zone | 0)
+    && colourDistance(a.colour1, b.colour1) < 1
+    && colourDistance(a.colour2, b.colour2) < 1
+    && a.speed === b.speed
+    && a.direction === b.direction
+}
+
+// LED file contents -> brightness level, or -1 if unreadable. The ASUS
+// drivers use asusd's 0..3 scale, so no conversion is needed.
+function levelFromLed(raw) {
+  var value = parseInt(raw, 10)
+  return isNaN(value) ? -1 : clamp(value, 0, 3)
 }
 
 // D-Bus argv. Always an array, never a shell string, so a colour can never be

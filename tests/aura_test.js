@@ -36,6 +36,16 @@ eq('setModeData clamps colour', setModeDataCommand('/p',{mode:0,colour1:[999,-5,
 eq('setModeData rejects bad speed', setModeDataCommand('/p',{mode:0,speed:'Turbo'})[16], 'Med')
 eq('setBrightness clamps', setBrightnessCommand('/p', 99)[8], '3')
 
+eq('levelFromLed sysfs text', levelFromLed('2\n'), 2)
+eq('levelFromLed clamps', levelFromLed('7'), 3)
+eq('levelFromLed unreadable', levelFromLed(''), -1)
+
+const fx = {mode:2, zone:0, colour1:[0,255,255], colour2:[0,0,0], speed:'Low', direction:'Right'}
+eq('sameEffect identical', sameEffect(fx, Object.assign({}, fx)), true)
+eq('sameEffect colour differs', sameEffect(fx, Object.assign({}, fx, {colour1:[0,255,254]})), false)
+eq('sameEffect speed differs', sameEffect(fx, Object.assign({}, fx, {speed:'Med'})), false)
+eq('sameEffect unknown state', sameEffect(null, fx), false)
+
 // Against a real busctl payload
 const real = '{"type":"a{sv}","data":[{"Brightness":{"type":"u","data":2},"LedModeData":{"type":"(uu(yyy)(yyy)ss)","data":[0,0,[255,0,255],[0,0,0],"Med","Right"]},"SupportedBasicModes":{"type":"au","data":[0,1,2,3,10]}}]}'
 const props = parseGetAll(real)

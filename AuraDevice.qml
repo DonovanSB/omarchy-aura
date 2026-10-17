@@ -32,13 +32,22 @@ Item {
 
   signal refreshed()
 
+  // A level set by something other than this plugin, the keyboard keys above
+  // all. asusd has already been told by the time it fires.
+  signal brightnessChangedOutside(int level)
+
   property string _devicePath: ""
   property bool _loaded: false
   property string _lastError: ""
 
-  // Newest frame queued while a write is in flight. Older frames have no
-  // value, so only one is kept rather than a backlog of processes.
-  property var _pendingColour: null
+  // Newest write queued while another is in flight. Older ones have no value,
+  // so only one is kept rather than a backlog of processes.
+  property var _pending: null
+
+  // What the keyboard shows (last read back or written) and the level asusd
+  // has stored (last written), so repeats can be skipped.
+  property var _shown: null
+  property int _asusdBrightness: -1
 
   // ------------------------------------------------------------ discovery
   Component.onCompleted: discover()
@@ -95,7 +104,8 @@ Item {
   }
 
   function _applyProps(props) {
-    if ("Brightness" in props) brightness = props.Brightness
+    // A brightness write still in flight makes this reading stale.
+    if ("Brightness" in props && !brightnessProc.running) brightness = props.Brightness
     if ("SupportedBasicModes" in props) supportedModes = props.SupportedBasicModes
     if ("SupportedBrightness" in props) supportedBrightness = props.SupportedBrightness
 
@@ -109,10 +119,15 @@ Item {
         colour2 = data[3]
         speed = data[4]
         direction = data[5]
+        _shown = _state(mode, colour1)
       } else if ("LedMode" in props) {
         mode = props.LedMode
       }
     }
+
+    // The keyboard keys bypass asusd, so its stored level can fall behind.
+    // Realign it before any effect write can bring that level back.
+    if (brightness >= 0) setBrightness(brightness)
 
     _lastError = ""
     _loaded = true
@@ -122,7 +137,10 @@ Item {
   // --------------------------------------------------------------- writing
   function setBrightness(level) {
     if (_devicePath === "") return
-    brightness = Aura.clamp(Math.round(level), 0, 3)
+    var next = Aura.clamp(Math.round(level), 0, 3)
+    if (next === brightness && next === _asusdBrightness) return
+    brightness = next
+    _asusdBrightness = next
     brightnessProc.running = false
     brightnessProc.command = Aura.setBrightnessCommand(_devicePath, brightness)
     brightnessProc.running = true
@@ -130,6 +148,9 @@ Item {
 
   Process {
     id: brightnessProc
+    // Deferred: a restart kills the old process, which lands here before the
+    // new one is running.
+    onExited: Qt.callLater(root._flush)
     stderr: StdioCollector {
       onStreamFinished: if (text.trim() !== "") root._lastError = text.trim()
     }
@@ -148,7 +169,20 @@ Item {
     if ("speed" in o) speed = o.speed
     if ("direction" in o) direction = o.direction
     if (brightness <= 0) return
+    // Rewriting what is already showing would only restart the animation.
+    if (!_pending && Aura.sameEffect(_shown, _state(mode, colour1))) return
     _write(mode, colour1)
+  }
+
+  function _state(modeId, rgb) {
+    return {
+      mode: modeId,
+      zone: root.zone,
+      colour1: rgb,
+      colour2: root.colour2,
+      speed: root.speed,
+      direction: root.direction
+    }
   }
 
   // Static plus a colour, with backpressure instead of a queue. Nothing is
@@ -157,42 +191,85 @@ Item {
   function pushColour(rgb) {
     if (_devicePath === "" || !rgb) return
     if (brightness <= 0) {
-      _pendingColour = null
+      _pending = null
       return
     }
     if (writeProc.running) {
-      _pendingColour = rgb
+      _pending = { mode: 0, colour: rgb }
       return
     }
     _write(0, rgb)
   }
 
+  // asusd re-applies its stored brightness on every effect write, so a write
+  // that overtook a brightness change would flash the old level.
   function _write(modeId, rgb) {
+    if (brightnessProc.running) {
+      _pending = { mode: modeId, colour: rgb }
+      return
+    }
+    // Every write carries the full state, so anything still queued is stale.
+    _pending = null
+    _shown = _state(modeId, rgb)
     writeProc.running = false
-    writeProc.command = Aura.setModeDataCommand(_devicePath, {
-      mode: modeId,
-      zone: root.zone,
-      colour1: rgb,
-      colour2: root.colour2,
-      speed: root.speed,
-      direction: root.direction
-    })
+    writeProc.command = Aura.setModeDataCommand(_devicePath, _shown)
     writeProc.running = true
+  }
+
+  // Sends the write that queued up behind one in flight.
+  function _flush() {
+    if (brightness <= 0) _pending = null
+    if (!_pending || writeProc.running || brightnessProc.running) return
+    var next = _pending
+    _pending = null
+    _write(next.mode, next.colour)
   }
 
   Process {
     id: writeProc
-    onExited: {
-      // Send the frame that arrived mid-write.
-      if (root.brightness <= 0) root._pendingColour = null
-      if (root._pendingColour) {
-        var next = root._pendingColour
-        root._pendingColour = null
-        root._write(0, next)
-      }
-    }
+    onExited: Qt.callLater(root._flush)
     stderr: StdioCollector {
       onStreamFinished: if (text.trim() !== "") root._lastError = text.trim()
     }
+  }
+
+  // ------------------------------------------------------- outside changes
+  // Brightness changes that skip asusd, which emits nothing for them: the
+  // kernel handling the keyboard keys, or a script writing the LED class
+  // device. The brightness file also changes on every asusd write, so only a
+  // level that differs from the last one written counts.
+  FileView {
+    path: Aura.LED_PATH + "/brightness"
+    watchChanges: true
+    printErrors: false
+    // text() is stale inside the change signal itself.
+    onFileChanged: reload()
+    // Mid-write the file may still hold the old level; the write's own change
+    // follows.
+    onLoaded: if (!brightnessProc.running) root._ledChanged(Aura.levelFromLed(text()))
+  }
+
+  // The kernel reports key presses here, never in the file above. Read from
+  // here too: an effect write can overwrite the brightness file before it is
+  // read, but not this one.
+  FileView {
+    property bool pressed: false
+    path: Aura.LED_PATH + "/brightness_hw_changed"
+    watchChanges: true
+    printErrors: false
+    onFileChanged: { pressed = true; reload() }
+    // The first load holds whatever the last press was, not news.
+    onLoaded: {
+      if (!pressed) return
+      pressed = false
+      root._ledChanged(Aura.levelFromLed(text()))
+    }
+  }
+
+  function _ledChanged(level) {
+    if (!ready || level < 0 || level === brightness) return
+    // Through asusd, so its stored level matches too.
+    setBrightness(level)
+    brightnessChangedOutside(level)
   }
 }

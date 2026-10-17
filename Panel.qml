@@ -158,6 +158,16 @@ Panel {
   // read the pre-music state. Merges into the record rather than reading the
   // device, which is frozen while music runs.
   function applyEffect(overrides, extras) {
+    var next = root.effectWith(overrides)
+    var values = { effect: next }
+    for (var extra in (extras || {})) values[extra] = extras[extra]
+    root.persistSettings(values)
+
+    device.setBrightness(next.brightness)
+    if (next.brightness > 0) device.applyMode(next)
+  }
+
+  function effectWith(overrides) {
     var base = root.effectState
     var next = {
       mode: base.mode,
@@ -168,13 +178,19 @@ Panel {
       brightness: root.brightnessNow()
     }
     for (var key in overrides) next[key] = overrides[key]
+    return next
+  }
 
-    var values = { effect: next }
-    for (var extra in (extras || {})) values[extra] = extras[extra]
+  // The keyboard keys change brightness without going through this panel, so
+  // the level the device reports wins over the recorded one.
+  function adoptDeviceBrightness() {
+    var actual = device.brightness
+    var known = root.brightnessNow()
+    if (!root.configReady || actual < 0 || actual === known) return
+    var values = { effect: root.effectWith({ brightness: actual }) }
+    // Switched off from the keys: right-click brings back the level it had.
+    if (actual === 0 && known > 0) values.restoreBrightness = known
     root.persistSettings(values)
-
-    device.setBrightness(next.brightness)
-    if (next.brightness > 0) device.applyMode(next)
   }
 
   readonly property var configuredEffect: setting("effect", null)
@@ -284,9 +300,10 @@ Panel {
     target: device
     function onRefreshed() {
       root.seedConfiguredEffect()
-      root.pushBrightness()
+      root.adoptDeviceBrightness()
       root.pushEffect()
     }
+    function onBrightnessChangedOutside() { root.adoptDeviceBrightness() }
   }
 
   ThemeColour { id: theme }

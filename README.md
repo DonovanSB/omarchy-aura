@@ -64,6 +64,10 @@ can be bound to a key in `~/.config/hypr/bindings.lua` or added to
 On the pill itself: right-click switches the lights off and back on at the
 level they were, and middle-click steps through the brightness levels.
 
+Brightness also follows the keyboard's own backlight keys. A level set with
+them shows up in the panel and on the pill right away, and the plugin never
+writes its last remembered level over it.
+
 Only the effects your firmware actually implements are listed. A different
 ASUS board will show a different set.
 
